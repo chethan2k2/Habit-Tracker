@@ -1,0 +1,80 @@
+{
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
+}
+
+body {
+  background: #f0f4f8;
+  padding: 20px;
+  color: #333;
+}
+
+.container {
+  max-width: 500px;
+  margin: 0 auto;
+  background: white;
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 25px;
+  font-size: 28px;
+  color: #4a90e2;
+}
+
+.input-group {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 25px;
+}
+
+#habit-input {
+  flex: 1;
+  padding: 10px;
+  border: 2px solid #4a90e2;
+  border-radius: 8px;
+  font-size: 16px;
+}
+
+#add-btn {
+  padding: 10px 20px;
+  background-color: #4a90e2;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+#add-btn:hover {
+  background-color: #357ab7;
+}
+
+.habit-card {
+  background-color: #e8f0fe;
+  border: 1px solid #b3d4fc;
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.habit-card span {
+  font-size: 18px;
+}
+
+button {
+  padding: 6px 12px;
+  border: none;
+  background-color: #5cb85c;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}

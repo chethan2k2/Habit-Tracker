@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nebula Habits - Conquer Your Goals</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --hue-accent: 290; /* Vibrant Purple/Magenta */
+            --sat-accent: 70%;
+            --hue-neutral: 225; /* Cool Neutral */
+            --sat-neutral: 15%;
+
+            /* Nebula Dark Theme */
+            --bg-gradient-start: hsl(var(--hue-neutral), 25%, 10%); /* Deep Blue/Black */
+            --bg-gradient-end: hsl(var(--hue-accent), 20%, 15%);  /* Deep Purple/Black */
+            --app-background: hsl(var(--hue-neutral), var(--sat-neutral), 18%); /* Dark Gray-Blue */
+            --primary-text: hsl(var(--hue-neutral), 20%, 95%); /* Very Light Gray */
+            --secondary-text: hsl(var(--hue-neutral), 10%, 65%); /* Medium Gray */
+            --accent-color: hsl(var(--hue-accent), var(--sat-accent), 65%);
+            --accent-hover: hsl(var(--hue-accent), var(--sat-accent), 75%);
+            --accent-text: hsl(var(--hue-accent), 50%, 10%); /* Dark contrast for accent bg */
+            --completed-color: hsl(var(--hue-neutral), 10%, 55%);
+            --delete-color: hsl(0, 70%, 70%); /* Slightly brighter red for dark */
+            --delete-hover: hsl(0, 80%, 60%);
+            --border-color: hsl(var(--hue-neutral), var(--sat-neutral), 28%); /* Subtle border */
+            --input-bg: hsl(var(--hue-neutral), var(--sat-neutral), 15%); /* Slightly darker input */
+            --shadow-color: hsla(0, 0%, 0%, 0.3); /* Shadow for depth */
+            --shadow-hover-color: hsla(0, 0%, 0%, 0.4);
+            --streak-bg: hsla(var(--hue-accent), var(--sat-accent), 65%, 0.15);
+            --streak-text: hsl(var(--hue-accent), var(--sat-accent), 75%);
+            --reminder-bg: hsl(190, 30%, 22%); /* Soft Teal Dark */
+            --reminder-text: hsl(190, 70%, 80%);
+            --reminder-border: hsl(190, 40%, 35%);
+            --checkmark-color: var(--accent-text); /* Dark check on light accent bg */
+            --toggle-bg-completed: var(--accent-color);
+            --toggle-border: hsl(var(--hue-neutral), var(--sat-neutral), 40%); /* Clearer border */
+            --toggle-border-completed: var(--accent-color);
+            --drag-over-bg: hsla(var(--hue-accent), var(--sat-accent), 65%, 0.1); /* Highlight drop zone */
+
+            --transition-fast: 0.15s ease;
+            --transition-smooth: 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            /* CHANGED: Nebula gradient background */
+            background-color: #111827; /* Fallback */
+            background-image: linear-gradient(145deg, var(--bg-gradient-start), var(--bg-gradient-end));
+            color: var(--primary-text);
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            margin: 0;
+            padding: 50px 20px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .app {
+            background: var(--app-background);
+            padding: 35px 40px;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 600px; /* Slightly wider for more complex items */
+            box-shadow: 0 15px 35px -10px var(--shadow-color); /* More prominent shadow */
+            border: 1px solid var(--border-color); /* Subtle border */
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary-text);
+            margin-top: 0;
+            margin-bottom: 30px;
+            font-weight: 700;
+            font-size: 1.85rem; /* Slightly larger */
+        }
+
+        .input-group {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 30px;
+        }
+
+        #taskInput {
+            flex: 1;
+            padding: 14px 18px;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            font-size: 1rem;
+            font-family: inherit;
+            transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+            color: var(--primary-text);
+            background-color: var(--input-bg); /* Differentiated input background */
+        }
+        #taskInput::placeholder {
+            color: var(--secondary-text);
+            opacity: 0.7;
+        }
+        #taskInput:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px hsla(var(--hue-accent), var(--sat-accent), 65%, 0.3); /* Accent focus ring */
+        }
+
+        #addTaskBtn {
+            padding: 14px 24px;
+            cursor: pointer;
+            background-color: var(--accent-color);
+            color: var(--accent-text);
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            font-family: inherit;
+            transition: background-color var(--transition-fast), transform var(--transition-fast);
+            white-space: nowrap;
+        }
+        #addTaskBtn:hover {
+            background-color: var(--accent-hover);
+            transform: translateY(-1px);
+        }
+        #addTaskBtn:active { transform: translateY(0px); }
+
+        #taskList {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            margin-bottom: 20px;
+        }
+
+        #emptyState { /* No change needed */ }
+
+        li.task-item {
+            display: flex;
+            align-items: center; /* Align items vertically */
+            gap: 10px; /* Gap between elements */
+            padding: 10px 12px; /* Adjusted padding */
+            border-radius: 10px;
+            margin-bottom: 12px;
+            background-color: var(--app-background); /* Same as app background */
+            border: 1px solid var(--border-color); /* Clearer separation */
+            transition: background-color var(--transition-smooth), box-shadow var(--transition-smooth), border-color var(--transition-smooth), opacity var(--transition-smooth), transform var(--transition-smooth);
+            position: relative;
+            overflow: hidden; /* Ensure content fits */
+            cursor: grab; /* Indicate draggable */
+        }
+        li.task-item:hover {
+             border-color: hsl(var(--hue-neutral), var(--sat-neutral), 35%);
+             background-color: hsl(var(--hue-neutral), var(--sat-neutral), 22%); /* Slight bg change */
+             /* box-shadow: 0 4px 10px var(--shadow-hover-color); No strong shadow needed */
+        }
+        /* NEW: Style for when dragging */
+        li.task-item.dragging {
+            opacity: 0.5;
+            cursor: grabbing;
+            background-color: hsl(var(--hue-neutral), var(--sat-neutral), 25%);
+        }
+        /* NEW: Style for potential drop target */
+         li.task-item.drag-over {
+            background-color: var(--drag-over-bg);
+            border-style: dashed;
+            border-color: var(--accent-color);
+         }
+
+
+        /* Animations (FadeIn, FadeOut, Shake) - No change needed */
+        @keyframes fadeIn { /* ... */ }
+        li.task-item.task-enter-active { /* ... */ }
+        @keyframes fadeOut { /* ... */ }
+        li.task-item.task-exit-active { /* ... */ }
+        @keyframes shake { /* ... */ }
+        .shake-animation { /* ... */ }
+
+        /* NEW: Drag Handle */
+        .drag-handle {
+            cursor: grab;
+            color: var(--secondary-text);
+            padding: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.6;
+            transition: color var(--transition-fast), opacity var(--transition-fast);
+        }
+        .drag-handle:hover {
+             opacity: 1;
+             color: var(--primary-text);
+        }
+        .drag-handle svg {
+             width: 18px;
+             height: 18px;
+             stroke-width: 1.5;
+        }
+         li.task-item.dragging .drag-handle {
+            cursor: grabbing;
+         }
+
+
+        .task-content {
+            display: flex;
+            align-items: center;
+            gap: 12px; /* Reduced gap slightly */
+            flex-grow: 1;
+            overflow: hidden;
+        }
+
+        .task-toggle {
+            width: 24px;
+            height: 24px;
+            border: 2px solid var(--toggle-border);
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-shrink: 0;
+            transition: border-color var(--transition-fast), background-color var(--transition-fast);
+            background-color: transparent;
+        }
+        .task-toggle:hover:not(:disabled) { /* Don't change border if disabled */
+            border-color: var(--accent-hover);
+        }
+        .task-toggle svg { /* Checkmark */
+            width: 14px; height: 14px;
+            stroke: var(--checkmark-color);
+            stroke-width: 2.5;
+            opacity: 0;
+            transform: scale(0.5);
+            transition: opacity var(--transition-fast), transform var(--transition-fast);
+        }
+
+        .task-name {
+            flex-grow: 1;
+            cursor: pointer;
+            word-break: break-word;
+            font-size: 1rem;
+            line-height: 1.4;
+            transition: color var(--transition-smooth), text-decoration-color var(--transition-smooth);
+            color: var(--primary-text);
+            text-decoration-color: transparent;
+            padding: 2px 0; /* Add slight padding for edit alignment */
+        }
+
+        /* NEW: Inline Edit Input */
+        .edit-input {
+            flex-grow: 1;
+            font-size: 1rem;
+            line-height: 1.4;
+            padding: 1px 5px; /* Match task-name roughly */
+            margin: 0; /* Reset margin */
+            border: 1px solid var(--accent-color);
+            border-radius: 4px;
+            background-color: var(--input-bg);
+            color: var(--primary-text);
+            font-family: inherit;
+            outline: none;
+            box-shadow: 0 0 0 2px hsla(var(--hue-accent), var(--sat-accent), 65%, 0.2);
+        }
+
+
+        li.completed .task-toggle { /* Same as before */ }
+        li.completed .task-toggle svg { /* Same as before */ }
+        li.completed .task-name { /* Same as before */ }
+        li.completed .task-toggle:hover { /* Same as before */ }
+        li.completed .task-name { cursor: default; }
+        li.completed .drag-handle { opacity: 0.4; cursor: default; } /* Less prominent drag handle */
+
+
+        .task-actions { /* CHANGED: Grouping actions */
+            display: flex;
+            align-items: center;
+            gap: 6px; /* Smaller gap between actions */
+            flex-shrink: 0;
+            margin-left: 10px; /* Space before actions */
+        }
+
+         .streak {
+            font-size: 13px; font-weight: 600;
+            color: var(--streak-text);
+            background-color: var(--streak-bg);
+            padding: 4px 10px; border-radius: 15px;
+            white-space: nowrap; display: inline-flex;
+            align-items: center; gap: 4px;
+            transition: background-color var(--transition-fast), color var(--transition-fast);
+            margin-right: 6px; /* Space between streak and buttons */
+        }
+        .streak:empty { display: none; }
+        .streak.high-streak { /* Same as before */ }
+
+
+        .icon-btn { /* NEW: Base class for icon buttons */
+            background: none; border: none;
+            cursor: pointer; padding: 6px;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--secondary-text);
+            transition: color var(--transition-fast), background-color var(--transition-fast), transform var(--transition-fast);
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        .icon-btn svg {
+            width: 19px; height: 19px; /* Consistent icon size */
+            stroke: currentColor; stroke-width: 1.5;
+        }
+        .icon-btn:hover {
+            color: var(--primary-text); /* Default hover */
+            background-color: hsla(var(--hue-neutral), var(--sat-neutral), 30%, 0.5);
+            transform: scale(1.1);
+        }
+        .icon-btn:active { transform: scale(1); }
+
+        .edit-btn:hover { color: var(--accent-hover); } /* Specific hover color */
+        .delete-btn:hover {
+            color: var(--delete-hover);
+            background-color: hsla(0, 70%, 70%, 0.1);
+         }
+
+
+        .reminder { /* Reminder styles adjusted slightly for dark */
+            background: var(--reminder-bg);
+            padding: 14px 20px; border-radius: 10px;
+            margin-bottom: 25px; font-size: 0.95rem;
+            font-weight: 500; color: var(--reminder-text);
+            text-align: center; border: 1px solid var(--reminder-border);
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .reminder svg { width: 18px; height: 18px; fill: currentColor; }
+
+        /* Responsive adjustments - minor tweaks might be needed */
+        @media (max-width: 600px) {
+            body { padding: 20px 15px; }
+            .app { padding: 25px 20px; }
+            h1 { font-size: 1.6rem; margin-bottom: 25px; }
+            .input-group { flex-direction: column; gap: 12px; margin-bottom: 25px; }
+            li.task-item { gap: 8px; padding: 8px 10px; }
+            .task-content { gap: 10px; }
+            .task-actions { gap: 4px; margin-left: 8px; }
+            .icon-btn svg { width: 18px; height: 18px; }
+            .streak { padding: 3px 8px; font-size: 12px; }
+            .drag-handle { display: none; } /* Hide handle on mobile where drag is harder */
+            li.task-item { cursor: default; } /* Disable grab cursor */
+        }
+
+    </style>
+</head>
+<body>
+    <div class="app">
+        <div id="reminderBox" class="reminder" style="display:none;">
+             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+               <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm-.75-4.75a.75.75 0 001.5 0V8.66l1.95 2.1a.75.75 0 101.1-1.02l-3.25-3.5a.75.75 0 00-1.1 0L6.2 9.74a.75.75 0 101.1 1.02l1.95-2.1v4.59z" clip-rule="evenodd" />
+             </svg>
+             Keep the momentum going! Complete a task today.
+         </div>
+
+        <h1>Nebula Habits</h1>
+        <div class="input-group">
+            <input type="text" id="taskInput" placeholder="Add a new habit to track..." aria-label="New task name"/>
+            <button id="addTaskBtn">Add Task</button>
+        </div>
+
+        <div id="emptyState" style="display: none;">
+            <p>Chart your course.<br><strong>Add your first habit above!</strong></p>
+        </div>
+
+        <ul id="taskList"></ul>
+    </div>
+
+    <script>
+        const todayStr = new Date().toISOString().split('T')[0];
+        // CHANGED: Using a new key for this version
+        const STORAGE_KEY = "nebulaHabits";
+        let tasks = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+
+        const taskListEl = document.getElementById("taskList");
+        const inputEl = document.getElementById("taskInput");
+        const reminderBox = document.getElementById("reminderBox");
+        const addBtn = document.getElementById("addTaskBtn");
+        const emptyStateEl = document.getElementById("emptyState");
+
+        // --- Drag & Drop State ---
+        let draggedItem = null;
+
+        // --- Core Functions ---
+
+        function saveTasks() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+        }
+
+        function addTask() {
+            const name = inputEl.value.trim();
+            if (!name) {
+                inputEl.style.borderColor = 'hsl(0, 70%, 70%)'; // Use theme red
+                setTimeout(() => { inputEl.style.borderColor = ''; }, 500);
+                return;
+            }
+            const newTask = {
+                id: Date.now().toString(),
+                name,
+                completed: false,
+                lastCompletedDate: null,
+                streak: 0,
+                createdAt: new Date().toISOString()
+            };
+            // Add to the beginning or end? Let's add to end for consistency.
+            tasks.push(newTask);
+            inputEl.value = "";
+            saveTasks();
+            renderTasks(); // Will now render the new task
+            inputEl.focus();
+
+            // Highlight the newly added task briefly (optional)
+            const newTaskEl = taskListEl.querySelector(`[data-task-id="${newTask.id}"]`);
+            if (newTaskEl) {
+                newTaskEl.style.transition = 'none'; // Disable transition for immediate effect
+                newTaskEl.style.backgroundColor = 'var(--drag-over-bg)';
+                setTimeout(() => {
+                    newTaskEl.style.transition = ''; // Re-enable transitions
+                    newTaskEl.style.backgroundColor = '';
+                }, 500);
+            }
+        }
+
+        function toggleComplete(id) {
+            const taskIndex = tasks.findIndex(t => t.id === id);
+            if (taskIndex === -1) return;
+            const task = tasks[taskIndex];
+            const today = new Date().toISOString().split('T')[0];
+
+            if (task.lastCompletedDate === today) {
+                console.log("Task already completed today.");
+                const taskElement = document.querySelector(`li[data-task-id="${id}"]`);
+                if (taskElement) {
+                    taskElement.classList.add('shake-animation');
+                    setTimeout(() => taskElement.classList.remove('shake-animation'), 300);
+                }
+                return;
+            }
+
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+            task.streak = (task.lastCompletedDate === yesterdayStr) ? task.streak + 1 : 1;
+            task.lastCompletedDate = today;
+            task.completed = true;
+
+            saveTasks();
+            renderTasks();
+        }
+
+        function deleteTask(id) {
+            const taskElement = document.querySelector(`li[data-task-id="${id}"]`);
+            if (taskElement) {
+                taskElement.classList.add('task-exit-active');
+                taskElement.addEventListener('animationend', () => {
+                    tasks = tasks.filter(t => t.id !== id);
+                    saveTasks();
+                    renderTasks(); // Re-render without the deleted item
+                }, { once: true });
+            } else {
+                tasks = tasks.filter(t => t.id !== id);
+                saveTasks();
+                renderTasks();
+            }
+        }
+
+        // --- NEW: Edit Functions ---
+        function startEdit(id) {
+            const taskIndex = tasks.findIndex(t => t.id === id);
+            if (taskIndex === -1) return;
+
+            const taskElement = taskListEl.querySelector(`li[data-task-id="${id}"]`);
+            const taskNameSpan = taskElement.querySelector('.task-name');
+            const currentName = tasks[taskIndex].name;
+
+            // Replace span with input
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.value = currentName;
+            input.className = 'edit-input';
+            input.addEventListener('blur', () => saveEdit(id, input.value));
+            input.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    input.blur(); // Trigger blur to save
+                } else if (e.key === 'Escape') {
+                    cancelEdit(id, currentName); // Revert on Escape
+                }
+            });
+
+            taskNameSpan.replaceWith(input);
+            input.select(); // Select text for easy editing
+        }
+
+        function saveEdit(id, newName) {
+            const taskIndex = tasks.findIndex(t => t.id === id);
+            if (taskIndex === -1) return; // Should not happen normally
+
+            const trimmedName = newName.trim();
+            if (trimmedName && trimmedName !== tasks[taskIndex].name) {
+                tasks[taskIndex].name = trimmedName;
+                saveTasks();
+            }
+            // Always re-render the specific item or the whole list to show the span again
+            renderTasks(); // Simple full re-render for now
+        }
+
+        function cancelEdit(id, originalName) {
+             // No data change needed, just need to replace input with span
+             // Easiest way is often a full re-render in this simple setup
+             renderTasks();
+        }
+
+        // --- Rendering ---
+
+        function renderTasks() {
+            const currentTasks = Array.from(taskListEl.children).map(li => li.dataset.taskId);
+            const tasksToRender = tasks; // Use the current order from the tasks array
+
+            // Basic diffing/update logic (can be more sophisticated)
+            taskListEl.innerHTML = ""; // Clear current list for simplicity
+
+            if (tasksToRender.length === 0) {
+                emptyStateEl.style.display = 'block';
+                taskListEl.style.display = 'none';
+            } else {
+                emptyStateEl.style.display = 'none';
+                taskListEl.style.display = 'block';
+
+                tasksToRender.forEach((task) => {
+                    const li = createTaskElement(task);
+                    addDragDropListeners(li); // Add D&D listeners
+                    taskListEl.appendChild(li);
+                    // Animate if it's a new task (not present before)
+                    if (!currentTasks.includes(task.id)) {
+                        requestAnimationFrame(() => {
+                           li.classList.add('task-enter-active');
+                        });
+                    }
+                });
+            }
+            checkReminder();
+        }
+
+        function createTaskElement(task) {
+            const li = document.createElement("li");
+            li.className = "task-item";
+            li.setAttribute('data-task-id', task.id);
+            li.draggable = true; // Make it draggable
+
+            const isCompletedToday = task.lastCompletedDate === todayStr;
+            if (isCompletedToday) {
+                li.classList.add("completed");
+            }
+
+             // --- NEW: Drag Handle ---
+             const dragHandle = document.createElement('span');
+             dragHandle.className = 'drag-handle';
+             dragHandle.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg>`; // Simple drag indicator dots
+             dragHandle.title = "Drag to reorder"; // Tooltip
+             li.appendChild(dragHandle);
+
+
+            // --- Task Content (Toggle + Name) ---
+            const taskContent = document.createElement("div");
+            taskContent.className = "task-content";
+
+            const toggle = document.createElement("button");
+            toggle.className = "task-toggle";
+            toggle.setAttribute('aria-label', isCompletedToday ? `Task ${task.name} completed` : `Mark ${task.name} as complete`);
+            toggle.setAttribute('aria-pressed', isCompletedToday ? 'true' : 'false');
+            toggle.onclick = () => toggleComplete(task.id);
+            toggle.disabled = isCompletedToday;
+            toggle.innerHTML = `<svg viewBox="0 0 16 16" fill="none"><polyline points="3.75 8 6.75 11 12.25 5"></polyline></svg>`;
+            taskContent.appendChild(toggle);
+
+            const taskName = document.createElement("span");
+            taskName.className = "task-name";
+            taskName.textContent = task.name;
+            if (!isCompletedToday) {
+                taskName.onclick = () => startEdit(task.id); // Click name to edit
+                taskName.title = "Click to edit"; // Tooltip
+            } else {
+                taskName.style.cursor = 'default';
+            }
+            taskContent.appendChild(taskName);
+            li.appendChild(taskContent); // Add content div
+
+            // --- Task Actions (Streak + Edit + Delete) ---
+            const taskActions = document.createElement("div");
+            taskActions.className = "task-actions";
+
+            const streak = document.createElement("span");
+            streak.className = "streak";
+            if (task.streak > 0) {
+                let emoji = "🔥";
+                if (task.streak >= 7) { streak.classList.add('high-streak'); emoji = "🏆"; }
+                if (task.streak >= 30) emoji = "⭐";
+                streak.innerHTML = `${emoji} ${task.streak}`;
+                streak.setAttribute('aria-label', `${task.streak} day streak`);
+            }
+            taskActions.appendChild(streak); // Add streak first
+
+            // --- NEW: Edit Button ---
+            if (!isCompletedToday) { // Only show edit if not completed
+                const editBtn = document.createElement("button");
+                editBtn.className = "icon-btn edit-btn";
+                editBtn.setAttribute("aria-label", `Edit task ${task.name}`);
+                editBtn.title = "Edit task"; // Tooltip
+                editBtn.onclick = (e) => { e.stopPropagation(); startEdit(task.id); };
+                editBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`; // Pencil icon
+                taskActions.appendChild(editBtn);
+            }
+
+            // --- Delete Button ---
+            const delBtn = document.createElement("button");
+            delBtn.className = "icon-btn delete-btn";
+            delBtn.setAttribute("aria-label", `Delete task ${task.name}`);
+            delBtn.title = "Delete task"; // Tooltip
+            delBtn.onclick = (e) => { e.stopPropagation(); deleteTask(task.id); };
+            delBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>`; // Trash icon
+            taskActions.appendChild(delBtn);
+
+            li.appendChild(taskActions); // Add actions div
+
+            return li;
+        }
+
+
+        // --- NEW: Drag & Drop Event Handlers ---
+        function addDragDropListeners(item) {
+            item.addEventListener('dragstart', handleDragStart);
+            item.addEventListener('dragover', handleDragOver);
+            item.addEventListener('dragleave', handleDragLeave);
+            item.addEventListener('drop', handleDrop);
+            item.addEventListener('dragend', handleDragEnd);
+        }
+
+        function handleDragStart(e) {
+            draggedItem = this; // 'this' is the element being dragged
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', this.dataset.taskId); // Set data (optional but good practice)
+            // Add styling slightly delayed to ensure it applies
+            setTimeout(() => this.classList.add('dragging'), 0);
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault(); // Necessary to allow dropping
+            e.dataTransfer.dropEffect = 'move';
+            if (this !== draggedItem) { // Don't highlight self
+                 this.classList.add('drag-over');
+            }
+        }
+
+        function handleDragLeave(e) {
+             this.classList.remove('drag-over');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault(); // Prevent default browser drop behavior
+            e.stopPropagation(); // Prevent event bubbling
+
+            if (this === draggedItem) {
+                // Dropped on itself, do nothing
+                 this.classList.remove('drag-over');
+                return;
+            }
+
+            // Get the IDs of the dragged item and the drop target item
+            const draggedId = draggedItem.dataset.taskId;
+            const targetId = this.dataset.taskId;
+
+            // Find current indices
+            const draggedIndex = tasks.findIndex(task => task.id === draggedId);
+            const targetIndex = tasks.findIndex(task => task.id === targetId);
+
+            if (draggedIndex !== -1 && targetIndex !== -1) {
+                // Remove dragged item from original position
+                const [movedTask] = tasks.splice(draggedIndex, 1);
+                // Insert dragged item at the target position
+                tasks.splice(targetIndex, 0, movedTask);
+
+                saveTasks(); // Save the new order
+                renderTasks(); // Re-render the list with the new order
+            }
+
+             this.classList.remove('drag-over');
+        }
+
+        function handleDragEnd(e) {
+            // Clean up styles on all items
+            this.classList.remove('dragging');
+            taskListEl.querySelectorAll('.task-item').forEach(item => {
+                 item.classList.remove('drag-over'); // Remove highlight from all
+            });
+            draggedItem = null; // Reset dragged item
+        }
+
+        // --- Utilities & Event Listeners ---
+
+        function checkReminder() {
+            const now = new Date();
+            const currentHour = now.getHours();
+            const reminderThreshold = 20;
+            const anyTaskCompletedToday = tasks.some(task => task.lastCompletedDate === todayStr);
+            const showReminder = currentHour >= reminderThreshold && !anyTaskCompletedToday && tasks.length > 0;
+            reminderBox.style.display = showReminder ? "flex" : "none";
+        }
+
+        inputEl.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') { event.preventDefault(); addTask(); }
+            inputEl.style.borderColor = ''; // Clear error on typing
+        });
+
+        addBtn.onclick = addTask;
+
+        // --- Initial Load ---
+        renderTasks();
+
+        // --- Periodic Checks ---
+        setInterval(checkReminder, 60 * 1000);
+
+        // Add shake animation style (if not already included globally)
+        const styleSheetExists = !!document.querySelector('#animation-styles');
+        if (!styleSheetExists) {
+            const styleSheet = document.createElement("style");
+            styleSheet.id = "animation-styles";
+            styleSheet.type = "text/css";
+            styleSheet.innerText = `
+                @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-3px); } 75% { transform: translateX(3px); } }
+                .shake-animation { animation: shake 0.3s ease-in-out; }
+                @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+                li.task-item.task-enter-active { animation: fadeIn 0.4s var(--transition-smooth); }
+                @keyframes fadeOut { from { opacity: 1; transform: scale(1); } to { opacity: 0; transform: scale(0.95); } }
+                li.task-item.task-exit-active { animation: fadeOut 0.3s ease-out forwards; }
+            `;
+            document.head.appendChild(styleSheet);
+        }
+
+    </script>
+</body>
+</html>
